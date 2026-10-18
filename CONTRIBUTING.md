@@ -5,7 +5,7 @@ Thanks for helping. This is a small, security-sensitive Soroban contract, so the
 ## Setup
 
 ```bash
-git clone https://github.com/OWNER/stellar-guilds.git
+git clone https://github.com/Meet-hybrid/stellar-guilds.git
 cd stellar-guilds
 rustup target add wasm32v1-none
 cargo test

@@ -1,8 +1,5 @@
-<!-- Uncomment these once the repository is public and replace OWNER.
-[![CI](https://github.com/OWNER/stellar-guilds/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/stellar-guilds/actions/workflows/ci.yml)
+[![CI](https://github.com/Meet-hybrid/stellar-guilds/actions/workflows/ci.yml/badge.svg)](https://github.com/Meet-hybrid/stellar-guilds/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Drips Wave](https://img.shields.io/badge/Drips-Wave%20ready-7c3aed)](https://drips.network)
--->
 
 # Stellar Guilds
 
@@ -167,7 +164,7 @@ Prerequisites:
 - Optional: `cargo-llvm-cov` for coverage
 
 ```bash
-git clone https://github.com/OWNER/stellar-guilds.git
+git clone https://github.com/Meet-hybrid/stellar-guilds.git
 cd stellar-guilds
 rustup target add wasm32v1-none
 cargo test                      # 34 tests

@@ -4,8 +4,8 @@ contact_links:
     url: https://docs.drips.network/wave/
     about: How Waves work — claiming issues, complexity points, and payouts.
   - name: Security disclosure
-    url: https://github.com/OWNER/stellar-guilds/blob/main/SECURITY.md
+    url: https://github.com/Meet-hybrid/stellar-guilds/blob/main/SECURITY.md
     about: Report a vulnerability privately. Do not open a public issue for bugs that can move funds.
   - name: How to contribute
-    url: https://github.com/OWNER/stellar-guilds/blob/main/CONTRIBUTING.md
+    url: https://github.com/Meet-hybrid/stellar-guilds/blob/main/CONTRIBUTING.md
     about: Setup, the checks CI runs, and what gets a pull request closed.
