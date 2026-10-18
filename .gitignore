@@ -1,0 +1,19 @@
+# Rust
+/target/
+**/*.rs.bk
+
+# Test snapshots emitted by the Soroban test harness
+test_snapshots/
+
+# Soroban CLI local state (keys, deployments)
+.soroban/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
