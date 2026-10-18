@@ -1,8 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Drips Wave contributor guide
-    url: https://docs.drips.network/wave/
-    about: How Waves work — claiming issues, complexity points, and payouts.
   - name: Security disclosure
     url: https://github.com/Meet-hybrid/stellar-guilds/blob/main/SECURITY.md
     about: Report a vulnerability privately. Do not open a public issue for bugs that can move funds.

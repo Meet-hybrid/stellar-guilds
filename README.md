@@ -13,7 +13,7 @@ In West Africa this is *esusu*, in the Caribbean *partner*, in Latin America *ta
 
 ## Status
 
-This repository is **contract + documentation only**. There is no frontend and no deployment yet; both are tracked as Wave issues.
+This repository is **contract + documentation only**. There is no frontend and no deployment yet; both are listed in the roadmap below.
 
 | Check | Command | Result |
 |---|---|---|
@@ -215,7 +215,7 @@ Failures never panic with a string: they return a code a client can branch on.
 
 ## Deployment
 
-**Not yet deployed.** Testnet deployment is tracked as a Wave issue; until it is closed, this section deliberately contains no contract ID.
+**Not yet deployed.** Testnet deployment is an open task; this section deliberately contains no contract ID until it lands.
 
 The shape of the flow, once a deployment issue lands:
 
@@ -265,7 +265,7 @@ Tracked as issues; not implemented here:
 
 ## Contributing
 
-Contributions are picked up through the Drips Wave programme. See [CONTRIBUTING.md](CONTRIBUTING.md) for how issues are claimed, what a mergeable PR looks like, and how points are earned. Bug reports and security disclosures: see [SECURITY.md](SECURITY.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, the checks CI runs, how to claim an open issue, and what a mergeable PR looks like. Bug reports and security disclosures: see [SECURITY.md](SECURITY.md).
 
 ## License
 

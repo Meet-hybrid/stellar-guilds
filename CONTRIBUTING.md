@@ -64,19 +64,17 @@ Coverage: `cargo llvm-cov --package guild-vault --lib --show-missing-lines`. Cur
 - Clippy runs with `-D warnings`. The one crate-level allowance (`clippy::too_many_arguments`) exists because the SDK-generated client wrapper of the seven-parameter `initialize` trips the limit on macro-generated code. Adding another allowance needs a justification in the PR description.
 - Comments explain *why*. The code already says *what*.
 
-## Picking up work (Drips Wave)
+## Picking up work
 
-Stellar Guilds participates in the Drips Wave programme. A Wave is a recurring one-week sprint where maintainers nominate repo issues and contributors earn a share of the reward pool.
+There is no paid bounty programme. Issues carry a complexity label purely so you can pick work that fits the time you have; treat it as an estimate, not a contract.
 
-### Complexity levels
+### Complexity labels
 
-| Label | Points | Typical work |
-|---|---|---|
-| `complexity: trivial` | 100 | docs, a viewer, a script, a missing test for existing behaviour |
-| `complexity: medium` | 150 | one contract function with tests, one script, one small integration |
-| `complexity: high` | 200 | a feature slice across contract + client + docs |
-
-Points are awarded for issues that are **merged and verified**. An unmerged branch earns nothing.
+| Label | Typical work |
+|---|---|
+| `complexity: trivial` | docs, a viewer, a script, a missing test for existing behaviour |
+| `complexity: medium` | one contract function with tests, one script, one small integration |
+| `complexity: high` | a feature slice across contract + client + docs |
 
 ### Workflow
 
@@ -86,7 +84,7 @@ Points are awarded for issues that are **merged and verified**. An unmerged bran
 4. **Implement against the acceptance criteria** in the issue. They are a checklist, not a suggestion.
 5. **Run `make check`** and paste the output in the PR description.
 6. **Open a PR** referencing the issue. The PR template asks for the acceptance criteria with checkboxes ticked.
-7. **Respond to review.** Maintainers aim to review within 48 hours during a Wave.
+7. **Respond to review.** Maintainers aim to review within a few days.
 8. **Merge** squashes into `main` with the issue number in the commit subject, so verification is unambiguous.
 
 ### What gets a PR closed

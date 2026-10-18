@@ -1,15 +1,15 @@
 ---
-name: Bounty task (Drips Wave)
-about: A scoped, reviewable task with explicit acceptance criteria, ready to be nominated for a Wave
-title: "[BOUNTY] "
+name: Scoped task
+about: A scoped, reviewable task with explicit acceptance criteria
+title: "[TASK] "
 labels:
-  - bounty
+  - task
   - "status: available"
 ---
 
 <!--
 Maintainer checklist before publishing this issue:
-  - [ ] Complexity label applied (see table below) and matching our points scheme
+  - [ ] Complexity label applied (see below)
   - [ ] The issue can be completed without asking a question
   - [ ] Files to touch are named explicitly
   - [ ] Acceptance criteria are verifiable by running a command
@@ -51,7 +51,7 @@ Delete lines that do not apply.
 ## Complexity
 
 <!--
-Trivial = 100 points | Medium = 150 points | High = 200 points
+Judge the size honestly — it is a hint for whoever picks the work up.
 Any change to money movement or storage layout is at least Medium.
 -->
 

@@ -17,3 +17,6 @@ test_snapshots/
 .DS_Store
 .idea/
 .vscode/
+
+# Local planning notes, not part of the published project
+PROJECT-PLAN.md
