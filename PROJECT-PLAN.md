@@ -648,7 +648,7 @@ Verified on this machine with `rustc 1.96.0`, `soroban-sdk 28.0.0`, `stellar-cli
 | Unit tests | `cargo test` | **34 passed, 0 failed** |
 | Lints | `cargo clippy --all-targets -- -D warnings` | clean |
 | Formatting | `cargo fmt --check` | clean |
-| Wasm build | `stellar contract build` | **14,694 bytes**, 12 exported functions |
+| Wasm build | `stellar contract build` | **~14.7 KB** (14,694 bytes locally, 14,664 in CI — the artifact embeds build paths), 12 exported functions |
 | Coverage | `cargo llvm-cov --package guild-vault --lib` | lib.rs **99.72% lines / 97.10% regions** (1 of 356 lines uncovered), test.rs 100%, types.rs 0% of 4 lines |
 | Legacy target | `cargo build --target wasm32-unknown-unknown` | **fails by design** — see D10 |
 

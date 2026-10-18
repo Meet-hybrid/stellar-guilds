@@ -21,10 +21,12 @@ This repository is **contract + documentation only**. There is no frontend and n
 | Lints | `cargo clippy --all-targets -- -D warnings` | clean |
 | Formatting | `cargo fmt --check` | clean |
 | Coverage (`lib.rs`) | `cargo llvm-cov --package guild-vault --lib` | 99.72% lines, 97.10% regions |
-| Wasm build | `stellar contract build` | 14,694 bytes, 12 exported functions |
+| Wasm build | `stellar contract build` | ~14.7 KB, 12 exported functions |
 | Error variants | grep vs. named tests | 17 of 18 triggered (`MathOverflow` is unreachable — see below) |
 
-Numbers are measured, not estimated. Where a check could not reach 100%, the reason is stated in [Honest limitations](#honest-limitations).
+Numbers are measured, not estimated. The wasm size is given as ~14.7 KB rather than an exact figure because the artifact embeds build paths: the same commit produces 14,694 bytes on one machine and 14,664 bytes in CI. Both are well under the network's 64 KiB contract size limit, and CI enforces a 60 KiB budget.
+
+Where a check could not reach 100%, the reason is stated in [Honest limitations](#honest-limitations).
 
 ---
 
