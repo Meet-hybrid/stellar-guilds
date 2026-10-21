@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Security disclosure
-    url: https://github.com/Meet-hybrid/stellar-guilds/blob/main/SECURITY.md
-    about: Report a vulnerability privately. Do not open a public issue for bugs that can move funds.
+  - name: Report a security vulnerability
+    url: https://github.com/Meet-hybrid/stellar-guilds/security/advisories/new
+    about: Report a vulnerability privately. Do not open a public issue for bugs that can move funds; see SECURITY.md.
   - name: How to contribute
     url: https://github.com/Meet-hybrid/stellar-guilds/blob/main/CONTRIBUTING.md
     about: Setup, the checks CI runs, and what gets a pull request closed.

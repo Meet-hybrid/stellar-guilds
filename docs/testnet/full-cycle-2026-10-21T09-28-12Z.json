@@ -1,0 +1,188 @@
+{
+  "scenario": "full-cycle",
+  "network": "testnet",
+  "status": "passed",
+  "started_at": "2026-10-21T09-28-12Z",
+  "contract_id": "CAOFBX5R5M77QFHEFOO2AJCFSEKU4W3QRYDL622RN4UHAIP6EKGDF75V",
+  "token": {
+    "code": "USDC",
+    "issuer": "GDM4XO7D5NSIEKPVGHJTZOLTIU2CMTM7LFSLNYUPPR2FQG5AO5KX7WHL",
+    "sac": "CCVWMGNNGGZHJ5I5QB42KPUZUK6GJPOR4OD2S76VHWCNHXAYTTDYPWPX",
+    "note": "test asset issued by this script; no value"
+  },
+  "wasm_sha256": "57add7df40fc28c8999459064181d7c23790e7ba8fffc41900b8489e3981b429",
+  "steps": [
+    {
+      "step": "funded fresh testnet accounts with Friendbot",
+      "detail": {
+        "admin": "GB5W6JLNVYU3MSJDNIK53MWIFFINY53DDDHQQ6F27UX3AHESYRIPKS7K",
+        "treasury": "GC5NV2S6KIQUTQMBUIY3AUGTMXM7CCFP2NVM7IIMY66HBHBNHWTDDHJV",
+        "issuer": "GDM4XO7D5NSIEKPVGHJTZOLTIU2CMTM7LFSLNYUPPR2FQG5AO5KX7WHL"
+      }
+    },
+    {
+      "step": "issued test USDC: each member holds exactly 400 USDC"
+    },
+    {
+      "step": "wrapped the test asset as a Stellar Asset Contract",
+      "tx": "69a41d966cc4420b4f0e83d5c375a09c9dd2bcc2f8dbd11efec996de55462956",
+      "detail": {
+        "sac": "CCVWMGNNGGZHJ5I5QB42KPUZUK6GJPOR4OD2S76VHWCNHXAYTTDYPWPX"
+      }
+    },
+    {
+      "step": "deployed guild-vault",
+      "tx": "f71051076e4ef690c3d67c72fe9d3306f198b2b0e482f7c99d1dd95a8268b4fe",
+      "detail": {
+        "contract_id": "CAOFBX5R5M77QFHEFOO2AJCFSEKU4W3QRYDL622RN4UHAIP6EKGDF75V",
+        "wasm_sha256": "57add7df40fc28c8999459064181d7c23790e7ba8fffc41900b8489e3981b429"
+      }
+    },
+    {
+      "step": "initialized: 4 seats, 100 USDC per round, 120-ledger rounds, 24-ledger grace",
+      "tx": "541d7807e177c250db83e08c47f15ca5d81d85aee6b29cb5b34b9c47b5f2191b"
+    },
+    {
+      "step": "m1 joined (payout position follows join order)",
+      "tx": "5d1824807daf0e9140b4af90a5d6116f1f39bf91f88818bf4e81a6e62e718f63"
+    },
+    {
+      "step": "m2 joined (payout position follows join order)",
+      "tx": "8dfe1c2b130c7a103ed813b85beb26bcae0f093a2b16e8e1ce92b69d7556139c"
+    },
+    {
+      "step": "m3 joined (payout position follows join order)",
+      "tx": "711363be14d7394ff68d0b90ab0075cf8c2b0689039332e539b7c58e347a06c9"
+    },
+    {
+      "step": "m4 joined (payout position follows join order)",
+      "tx": "e36844c697ee32e30b3c3ff8cb9640f714b65019ea37d6fffdd13c53e358d7fe"
+    },
+    {
+      "step": "round 0: m1 deposited 100 USDC",
+      "tx": "1a130b18ac4158e7a7fea21da550e21bf81e65a7f650b2e91d2ba68756a2f9e6"
+    },
+    {
+      "step": "round 0: m2 deposited 100 USDC",
+      "tx": "309c45d32052ad3f4a35d0c02355a64f192caa5e0c5c8eb5c3c349e26f07714f"
+    },
+    {
+      "step": "round 0: m3 deposited 100 USDC",
+      "tx": "5f4867f8fb6c370dfd8711eefc5b0e2bf3db62c9a851750a51bc49df4b8cdf00"
+    },
+    {
+      "step": "round 0: m4 deposited 100 USDC",
+      "tx": "6890f5cadb42c52a30166de7c2e3d246a5f145b4d2ee202c4ea44346fcb348cf"
+    },
+    {
+      "step": "round 0: a second deposit by m1 was rejected with AlreadyPaid (#6)"
+    },
+    {
+      "step": "round 0: payout before the round deadline was rejected with RoundNotReady (#7)"
+    },
+    {
+      "step": "round 0: payout released exactly 399 USDC to m1 (fee 1 USDC accrued)",
+      "tx": "a0bf0a58073506df77fb362f9772205e22c8d00c37aed086b95c45e0b3aed3b9",
+      "detail": {
+        "recipient": "GBCB4AODDC2HWSX7652KI5BULNGLL7NGCW2R7NUG4LIKRIMSA5ASPPLW",
+        "received_stroops": "3990000000"
+      }
+    },
+    {
+      "step": "round 1: m1 deposited 100 USDC",
+      "tx": "065ea9ad8f5c0fd51ecd22f19e4cfdcaa67cb05e7fe953bc760a9d5f1aad7d6f"
+    },
+    {
+      "step": "round 1: m2 deposited 100 USDC",
+      "tx": "c5a9020d4b8dd94cfadf538551fa9e6e96a934edc095f4f5fa2ef4ba3d5c3a4c"
+    },
+    {
+      "step": "round 1: m3 deposited 100 USDC",
+      "tx": "d635c5997fc805c0fdaa6dcd0d423cdb76101c8fa0d71b32515b7a026312fce0"
+    },
+    {
+      "step": "round 1: m4 deposited 100 USDC",
+      "tx": "78b336ac249680168fcfe5995359c3af33dc0f5026860cc4f3657ab7f0506ab6"
+    },
+    {
+      "step": "round 1: payout released exactly 399 USDC to m2 (fee 1 USDC accrued)",
+      "tx": "ea12f762a225b8af3f893ab98b4847950bb103a93ac378835899d7600d4b9b1a",
+      "detail": {
+        "recipient": "GCHVM3FVF6MM2MY4QM2V3Q2K6KAGNWFSXEV3R6OIOLGNJ2U2SOBABVHE",
+        "received_stroops": "3990000000"
+      }
+    },
+    {
+      "step": "round 2: m1 deposited 100 USDC",
+      "tx": "237213e559c0a9ca23af58b76f22b6827b3a75385f8999da08afe90220412aac"
+    },
+    {
+      "step": "round 2: m2 deposited 100 USDC",
+      "tx": "04076dc93b8255baaa64a50360778deb94ba7600d60a98e71a9b8c5373602d32"
+    },
+    {
+      "step": "round 2: m3 deposited 100 USDC",
+      "tx": "9c5bf2c4d23f85df484f4ef7f1d08f69b91807d554e9648bfc0ccc7cada048bc"
+    },
+    {
+      "step": "round 2: m4 deposited 100 USDC",
+      "tx": "42ffc4b4161d3cca053f4a3cfe7571777ab4109e68759dbc0dae46ec09fc5178"
+    },
+    {
+      "step": "round 2: payout released exactly 399 USDC to m3 (fee 1 USDC accrued)",
+      "tx": "ac7191d1a2e9928e8d9911c8b103e4ae7894354a6a2b213356e0a92fa62ea784",
+      "detail": {
+        "recipient": "GBT2QOIRINIAR6PWMKKWWEUQJWAJVUUL6F7VIKJB7A2KRZGXZQWS76ZV",
+        "received_stroops": "3990000000"
+      }
+    },
+    {
+      "step": "round 3: m1 deposited 100 USDC",
+      "tx": "84659b27c7ec094e5bfd8b1a58ec900ae93a06e556ccb6b30650755238cdd06f"
+    },
+    {
+      "step": "round 3: m2 deposited 100 USDC",
+      "tx": "870bbec8f601a060ad7111c905f8ea969961d9a9733927b82362b873e473ef8b"
+    },
+    {
+      "step": "round 3: m3 deposited 100 USDC",
+      "tx": "a6ef421a60ead87f4da4ee4df9712300f12ad710b5048354e35045c6f8913cd0"
+    },
+    {
+      "step": "round 3: m4 deposited 100 USDC",
+      "tx": "991d0690dfb3cf65d130636ee9f11cbf71ec403c29667675499bded048852c37"
+    },
+    {
+      "step": "round 3: payout released exactly 399 USDC to m4 (fee 1 USDC accrued)",
+      "tx": "2479cb9c08b62f93bf0563f289eddab9b6c9f51763062051cb8b0cdee825379e",
+      "detail": {
+        "recipient": "GBGBFRZTRMKSS7SXA7CBUGXZQTXGB3FYT2EPJEN4IBKRZB2HJGWWDVMC",
+        "received_stroops": "3990000000"
+      }
+    },
+    {
+      "step": "every member ends with exactly 399 USDC (400 paid in, one 399 payout received)"
+    },
+    {
+      "step": "fee withdrawal sent by the admin was refused: it requires the treasury's signature",
+      "detail": {
+        "error": "Missing signing key for account GC5NV2S6KIQUTQMBUIY3AUGTMXM7CCFP2NVM7IIMY66HBHBNHWTDDHJV (the treasury)"
+      }
+    },
+    {
+      "step": "treasury withdrew exactly 4 USDC of fees; the contract holds 0",
+      "tx": "4ffde19fba01efbc738a42e5171cff9f38fe866f22bada030c1a0519657b3fd2",
+      "detail": {
+        "treasury_balance_stroops": "40000000",
+        "contract_balance_stroops": "0"
+      }
+    },
+    {
+      "step": "final balances: m1, m2, m3 and m4 each hold exactly 399 USDC",
+      "detail": {
+        "member_balance_stroops": "3990000000"
+      }
+    }
+  ],
+  "note": "The scripted run stopped at the unauthorized fee withdrawal: the contract correctly refused it (the CLI could not supply the treasury's signature), but the script's check expected a different error message. The script was fixed and the three final steps below were run against the same contract."
+}

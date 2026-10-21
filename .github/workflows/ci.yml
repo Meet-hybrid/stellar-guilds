@@ -15,8 +15,18 @@ env:
   WASM_BUDGET_BYTES: 61440
 
 jobs:
+  hygiene:
+    name: Repo hygiene
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Block auto-run configs, binary payloads and npm lifecycle hooks
+        run: bash scripts/check-repo-hygiene.sh
+      - name: ForgeGuard scanner regression tests
+        run: bash scripts/forgeguard/test-scan.sh
+
   contract:
-    name: Build, lint, and test
+    name: Build and test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -42,11 +52,12 @@ jobs:
       # "soroban-sdk requires stellar-cli v25.2.0+ to build a contract". The CLI
       # also runs spec shaking, so its artifact is the one the size budget and
       # the README refer to. Pinned to the version this repo is verified against.
-      - name: Install stellar-cli
+      - name: Install stellar-cli (pinned, checksum-verified)
         run: |
           set -euo pipefail
-          curl -fsSL -o /tmp/stellar-cli.tar.gz \
+          curl --proto '=https' --tlsv1.2 -fsSL -o /tmp/stellar-cli.tar.gz \
             "https://github.com/stellar/stellar-cli/releases/download/v28.0.0/stellar-cli-28.0.0-x86_64-unknown-linux-gnu.tar.gz"
+          echo "207544486734fccb4df1afc4a7745478f9f1e21688b2f9506f0ef36f60ce3fdc  /tmp/stellar-cli.tar.gz" | sha256sum -c -
           sudo tar -xzf /tmp/stellar-cli.tar.gz -C /usr/local/bin stellar
           stellar --version
 

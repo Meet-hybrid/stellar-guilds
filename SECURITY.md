@@ -53,3 +53,15 @@ These are documented design decisions, not vulnerabilities:
 - The treasury key is held responsibly. If it is lost, accrued fees are unrecoverable — the contract has no fee-redirection path by design.
 - Members are expected to verify the guild parameters (contribution, round length, seat count, treasury address) before joining. The contract enforces bounds but cannot tell anyone that a 60-day round is a bad idea.
 - The contract assumes the Stellar Asset Contract address of USDC is passed, never the issuer account. `initialize` proves the address implements SEP-41 metadata by calling `decimals()` on it.
+
+## Repository security
+
+Changes reach `main` only through controls that a contributor cannot switch off:
+
+- **Branch protection on `main`:** pull requests need an approving review (approvals are dismissed when new commits are pushed), the `Repo hygiene`, `Build and test`, `Coverage gate` and `Security Audit` checks must pass on a branch that is up to date with `main`, review conversations must be resolved, history stays linear, and force-pushes and branch deletion are blocked.
+- **CODEOWNERS** covers every file and names CI, scripts, the Makefile, toolchain and Cargo manifests explicitly.
+- **Repository hygiene** (`scripts/check-repo-hygiene.sh`, run in CI) rejects editor and devcontainer auto-run configs, font and binary files, npm lifecycle scripts and auto-run task settings.
+- **[ForgeGuard](docs/FORGEGUARD.md)** scans every pull request for supply-chain malware patterns (hidden payloads, Trojan Source characters, decode-and-execute code, non-registry dependency sources, binaries, build-time code) and merges only pull requests a maintainer approved, that are green, and that scan clean. It reads pull requests as git objects and never runs their code.
+- **Security Audit** runs on every pull request and weekly: RustSec advisories (`cargo audit`) and the policy in `deny.toml` (crates.io-only sources, permissive licenses, no wildcard versions or yanked crates).
+- CI installs a pinned, checksum-verified `stellar-cli`; workflows run with a read-only token.
+- Dependabot opens version and security updates, and secret scanning with push protection is enabled.

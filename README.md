@@ -13,7 +13,7 @@ In West Africa this is *esusu*, in the Caribbean *partner*, in Latin America *ta
 
 ## Status
 
-This repository is **contract + documentation only**. There is no frontend and no deployment yet; both are listed in the roadmap below.
+This repository is the **contract, its tests and documentation**, with a reproducible testnet deployment. There is no frontend yet; it is listed in the roadmap below.
 
 | Check | Command | Result |
 |---|---|---|
@@ -23,6 +23,7 @@ This repository is **contract + documentation only**. There is no frontend and n
 | Coverage (`lib.rs`) | `cargo llvm-cov --package guild-vault --lib` | 99.72% lines, 97.10% regions |
 | Wasm build | `stellar contract build` | ~14.7 KB, 12 exported functions |
 | Error variants | grep vs. named tests | 17 of 18 triggered (`MathOverflow` is unreachable — see below) |
+| Testnet | `scripts/testnet-demo.sh` | full 4-member cycle and a default case passed with real transactions ([Deployment](#deployment)) |
 
 Numbers are measured, not estimated. The wasm size is given as ~14.7 KB rather than an exact figure because the artifact embeds build paths: the same commit produces 14,694 bytes on one machine and 14,664 bytes in CI. Both are well under the network's 64 KiB contract size limit, and CI enforces a 60 KiB budget.
 
@@ -215,19 +216,23 @@ Failures never panic with a string: they return a code a client can branch on.
 
 ## Deployment
 
-**Not yet deployed.** Testnet deployment is an open task; this section deliberately contains no contract ID until it lands.
+The contract runs on **Stellar testnet**. `scripts/testnet-demo.sh` deploys a fresh guild, drives it with real transactions, checks every balance and every expected error, and writes each transaction hash to `docs/testnet/`. The wasm deployed is the one `stellar contract build` produces from this repository (SHA-256 `57add7df…b429`).
 
-The shape of the flow, once a deployment issue lands:
+Testnet has no mintable USDC, so the script issues its own test asset with code `USDC` (7 decimals) and wraps it as a Stellar Asset Contract. It is a test token with no value; its issuer and SAC address are recorded in each evidence file.
+
+| Scenario | Guild contract | Result | Evidence |
+|---|---|---|---|
+| Full cycle: 4 members, 100 USDC, 4 rounds | [`CAOFBX…F75V`](https://stellar.expert/explorer/testnet/contract/CAOFBX5R5M77QFHEFOO2AJCFSEKU4W3QRYDL622RN4UHAIP6EKGDF75V) | every payout exactly **399 USDC** (rounds: [`a0bf0a58…`](https://stellar.expert/explorer/testnet/tx/a0bf0a58073506df77fb362f9772205e22c8d00c37aed086b95c45e0b3aed3b9), [`ea12f762…`](https://stellar.expert/explorer/testnet/tx/ea12f762a225b8af3f893ab98b4847950bb103a93ac378835899d7600d4b9b1a), [`ac7191d1…`](https://stellar.expert/explorer/testnet/tx/ac7191d1a2e9928e8d9911c8b103e4ae7894354a6a2b213356e0a92fa62ea784), [`2479cb9c…`](https://stellar.expert/explorer/testnet/tx/2479cb9c08b62f93bf0563f289eddab9b6c9f51763062051cb8b0cdee825379e)); every member ends with exactly 399; treasury withdrew exactly 4 USDC ([`4ffde19f…`](https://stellar.expert/explorer/testnet/tx/4ffde19fba01efbc738a42e5171cff9f38fe866f22bada030c1a0519657b3fd2)) and the contract ends at 0. A second deposit (`AlreadyPaid`), an early payout (`RoundNotReady`) and a fee withdrawal without the treasury's signature were all refused. | [`full-cycle-2026-10-21T09-28-12Z.json`](docs/testnet/full-cycle-2026-10-21T09-28-12Z.json) |
+| Default: 2 members, one misses round 0 | [`CCBGTL…63RB`](https://stellar.expert/explorer/testnet/contract/CCBGTLDEZPWVIUO6AEX6MVKKP73R4D5UNYVSYKY5276VPDS4HXEX63RB) | inside grace, payout (`NotAllPaid`) and default flagging (`GraceNotExpired`) were refused; after grace anyone flagged the defaulter ([`03f9a514…`](https://stellar.expert/explorer/testnet/tx/03f9a5148318cde7fe13643c280d2c75ea793673bd9494bf918971bae4d201a6), reputation 0); the round settled pro-rata with exactly **99.75 USDC** to the recipient ([`4327fbf1…`](https://stellar.expert/explorer/testnet/tx/4327fbf182e428e5f94aa9176b3254651b45eb3036d4b4d740f2f2f65cb11205)) | [`default-2026-10-21T09-25-17Z.json`](docs/testnet/default-2026-10-21T09-25-17Z.json) |
+
+Reproduce (accounts are funded by Friendbot and their keys stay in the OS keyring):
 
 ```bash
-stellar keys generate deployer --network testnet --fund
-stellar contract build
-stellar contract deploy \
-  --wasm target/wasm32v1-none/release/guild_vault.wasm \
-  --source deployer --network testnet
+bash scripts/testnet-demo.sh default      # about 15 minutes
+bash scripts/testnet-demo.sh full-cycle   # about 45 minutes: rounds are 120 ledgers, the contract minimum
 ```
 
-Use the **Stellar Asset Contract address** of USDC, never the issuer account. Mainnet issuer: `GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN`. Derive the SAC address with:
+For a real deployment, pass the **Stellar Asset Contract address** of USDC, never the issuer account. Mainnet issuer: `GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN`. Derive the SAC address with:
 
 ```bash
 stellar contract id asset --asset USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN --network mainnet
@@ -251,7 +256,6 @@ A realistic journey is: a member cashes in local currency to USDC through an anc
 
 Tracked as issues; not implemented here:
 
-- Testnet deployment with a public contract ID and a reproducible invoke transcript
 - A TypeScript client package generated from contract bindings
 - A web dashboard for creating and monitoring guilds
 - A keeper script for permissionless settlement

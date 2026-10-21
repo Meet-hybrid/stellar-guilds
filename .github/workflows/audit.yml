@@ -1,0 +1,40 @@
+name: Security Audit
+
+# Dependency audit for the contract workspace. Runs on every pull request and
+# push to main (it is a required check), and weekly so newly published
+# advisories are caught between changes: RustSec advisories (cargo audit) and
+# the dependency policy in deny.toml (crates.io-only sources, permissive
+# licenses, no wildcard versions, no yanked crates).
+#
+# Nothing from the repository is built or executed.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Install cargo-audit and cargo-deny (pinned, checksum-verified)
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit@0.22.2,cargo-deny@0.20.2
+
+      - name: RustSec advisories
+        run: cargo audit
+
+      - name: Dependency policy
+        run: cargo deny --locked check sources bans licenses advisories

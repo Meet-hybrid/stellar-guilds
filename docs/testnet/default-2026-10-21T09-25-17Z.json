@@ -1,0 +1,24 @@
+{
+  "scenario": "default",
+  "network": "testnet",
+  "status": "passed",
+  "started_at": "2026-10-21T09-25-17Z",
+  "contract_id": "CCBGTLDEZPWVIUO6AEX6MVKKP73R4D5UNYVSYKY5276VPDS4HXEX63RB",
+  "token": {"code": "USDC", "issuer": "GCIIPNBH7UWIM3B62CSMOIFLQQMYPSZE7QNJTQ5NXNUSEUXQKDXZKSVU", "sac": "CB6JTYKSNGGR6VUATGU4Q3UPCJDZD7WDZ7YORC5HGJFPXSEESKNWYZC7", "note": "test asset issued by this script; no value"},
+  "wasm_sha256": "57add7df40fc28c8999459064181d7c23790e7ba8fffc41900b8489e3981b429",
+  "steps": [
+    {"step":"funded fresh testnet accounts with Friendbot","detail":{"admin":"GB32PTVB3XF2C7CLAAYZDKW5IXTQFW4UF26OJJZNFGDIO5NOULMTT4F7","treasury":"GCXBPZRKKO7YWNRLPPPGE7UHXR57EPOQ2OQAPHAJU4XURYWLN2ZP6ODS","issuer":"GCIIPNBH7UWIM3B62CSMOIFLQQMYPSZE7QNJTQ5NXNUSEUXQKDXZKSVU"}},
+    {"step":"issued test USDC: each member holds exactly 200 USDC"},
+    {"step":"wrapped the test asset as a Stellar Asset Contract","tx":"8336aee029126d1715712985dfd396d9717f3dca9e4489fb0ea858a9ed105783","detail":{"sac":"CB6JTYKSNGGR6VUATGU4Q3UPCJDZD7WDZ7YORC5HGJFPXSEESKNWYZC7"}},
+    {"step":"deployed guild-vault","tx":"48fac0d0a7024d62a8e5fde0fd2452baf56adfc82f9bf0a6aa931585e43f81ed","detail":{"contract_id":"CCBGTLDEZPWVIUO6AEX6MVKKP73R4D5UNYVSYKY5276VPDS4HXEX63RB","wasm_sha256":"57add7df40fc28c8999459064181d7c23790e7ba8fffc41900b8489e3981b429"}},
+    {"step":"initialized: 2 seats, 100 USDC per round, 120-ledger rounds, 24-ledger grace","tx":"543d0b62ca0fa27a5d77579e3e88e3ea0142892d2e4516d97c85cf52789962c0"},
+    {"step":"d1 joined (payout position follows join order)","tx":"50d15a5ca53388cca1bb884ffc99ec826e14ce64f061d11e9cbf1c0c9aee1e2b"},
+    {"step":"d2 joined (payout position follows join order)","tx":"8ea90062bbc2d0e30851ab706d8390c59c5d54558478d7d5db42b1fccf0ad1a5"},
+    {"step":"round 0: d1 deposited 100 USDC; d2 did not","tx":"8b19a2ec99f0ae9ccf9044b7dc5228ea8f838e0f4e9ca5d96e58968e3f241f35"},
+    {"step":"after the deadline but inside grace, payout was rejected with NotAllPaid (#8)"},
+    {"step":"inside grace, handle_default was rejected with GraceNotExpired (#9)"},
+    {"step":"after grace, anyone could mark d2 as defaulted","tx":"03f9a5148318cde7fe13643c280d2c75ea793673bd9494bf918971bae4d201a6"},
+    {"step":"d2 is_defaulted=true, reputation_score=0"},
+    {"step":"pro-rata payout: d1 received exactly 99.75 USDC (one contribution minus the 0.25% fee)","tx":"4327fbf182e428e5f94aa9176b3254651b45eb3036d4b4d740f2f2f65cb11205","detail":{"received_stroops":"997500000"}}
+  ]
+}
