@@ -1,15 +1,15 @@
-# ForgeGuard
+# GuildGuard
 
-**ForgeGuard is a repository automation tool, ported from
+**GuildGuard is a repository automation tool, ported from
 [Soroban Forge](https://github.com/Meet-hybrid/soroban-forge). It is NOT an
 official Drips or Stellar bot.** It runs entirely on GitHub Actions with the
 repository's `GITHUB_TOKEN`; there is no separate account or GitHub App.
 
-ForgeGuard scans every open pull request for supply-chain malware patterns and
+GuildGuard scans every open pull request for supply-chain malware patterns and
 merges a pull request once it is approved, green and clean. It complements the
 whole-tree checks in `scripts/check-repo-hygiene.sh`, which CI runs on every push.
 
-## When ForgeGuard merges
+## When GuildGuard merges
 
 A pull request is merged only when **all** of these hold:
 
@@ -22,22 +22,22 @@ A pull request is merged only when **all** of these hold:
    access approved the exact head commit, the author's own approval does not
    count, and nobody's latest review requests changes. A new push resets this.
 4. **Nothing is holding it.** The PR is not a draft, targets `main`, and has
-   neither the `do-not-merge` nor the `forgeguard:hold` label.
+   neither the `do-not-merge` nor the `guildguard:hold` label.
 5. **GitHub agrees.** The PR is mergeable, not behind its base and not blocked
    by branch protection.
 
 The merge is a squash merge pinned to the scanned head SHA. If anyone pushes
 after the scan, GitHub rejects the merge and the next run starts over.
 
-ForgeGuard never approves, never bypasses branch protection, and never updates
+GuildGuard never approves, never bypasses branch protection, and never updates
 or rebases a contributor's branch.
 
 ## What the scan looks for
 
-`scripts/forgeguard/scan-pr.sh BASE HEAD` checks the PR's changes since its
+`scripts/guildguard/scan-pr.sh BASE HEAD` checks the PR's changes since its
 merge base. It reports paths and line numbers only, never file content.
 
-**BLOCK**: malware patterns. Status `ForgeGuard / malware-scan` fails:
+**BLOCK**: malware patterns. Status `GuildGuard / malware-scan` fails:
 
 - anything `scripts/check-repo-hygiene.sh` rejects, checked over the whole head tree:
   editor and devcontainer configs, font and binary files, npm lifecycle scripts,
@@ -51,7 +51,7 @@ merge base. It reports paths and line numbers only, never file content.
   (`workspace:` and `file:` dependencies are allowed);
 - Cargo dependencies from git or alternative registries.
 
-**REVIEW**: sensitive but legitimate changes. The status passes, but ForgeGuard
+**REVIEW**: sensitive but legitimate changes. The status passes, but GuildGuard
 leaves the merge to a maintainer:
 
 - `.github/` (workflows, CODEOWNERS), `scripts/`, Makefiles, `.cargo/` config,
@@ -62,15 +62,15 @@ leaves the merge to a maintainer:
   (Soroban contract-spec entries, which start with `AAAA`, are exempt);
 - `curl … | sh`, new executable files, images and files over 1 MiB.
 
-Any change to ForgeGuard itself falls under REVIEW, so the bot can never merge
+Any change to GuildGuard itself falls under REVIEW, so the bot can never merge
 a change to its own rules.
 
-When a scan finds something, ForgeGuard posts one sticky comment on the PR
+When a scan finds something, GuildGuard posts one sticky comment on the PR
 listing the findings, and updates it in place on later runs.
 
 ## How it runs
 
-`.github/workflows/forgeguard.yml` runs when CI completes on a pull request,
+`.github/workflows/guildguard.yml` runs when CI completes on a pull request,
 every 30 minutes (to pick up approvals), and on demand from the Actions tab.
 The manual run takes an optional PR number and a dry-run switch.
 
@@ -84,16 +84,16 @@ or executed, so a PR cannot change the rules it is judged by.
 
 ```bash
 # Scan a branch against main.
-bash scripts/forgeguard/scan-pr.sh origin/main my-branch
+bash scripts/guildguard/scan-pr.sh origin/main my-branch
 
 # Scanner regression tests (also run in CI).
-bash scripts/forgeguard/test-scan.sh
+bash scripts/guildguard/test-scan.sh
 
 # Report what the bot would do, without posting or merging.
-GH_TOKEN=$(gh auth token) FORGEGUARD_REPO=Meet-hybrid/stellar-guilds \
-  FORGEGUARD_DRY_RUN=1 FORGEGUARD_BRANCHES=main \
-  FORGEGUARD_REQUIRED_CHECKS="Repo hygiene,Build and test,Coverage gate,Security Audit" \
-  bash scripts/forgeguard/merge.sh
+GH_TOKEN=$(gh auth token) GUILDGUARD_REPO=Meet-hybrid/stellar-guilds \
+  GUILDGUARD_DRY_RUN=1 GUILDGUARD_BRANCHES=main \
+  GUILDGUARD_REQUIRED_CHECKS="Repo hygiene,Build and test,Coverage gate,Security Audit" \
+  bash scripts/guildguard/merge.sh
 ```
 
 The approval check reads collaborator permissions, which needs a token with push
@@ -102,12 +102,12 @@ access to the repository.
 ## Known limitations
 
 - Merges made with `GITHUB_TOKEN` do not trigger further workflows, so CI does
-  not re-run on `main` after a ForgeGuard merge. Switch the workflow to a GitHub
+  not re-run on `main` after a GuildGuard merge. Switch the workflow to a GitHub
   App token if that matters.
 - PRs that are behind `main` (branch protection requires up-to-date branches)
   wait until the author, or a maintainer, updates them.
 - With a single maintainer, a maintainer's own PRs can never be approved by
-  someone else, so ForgeGuard does not merge them; the maintainer merges them by
+  someone else, so GuildGuard does not merge them; the maintainer merges them by
   hand.
 - The scan is pattern-based. It catches known supply-chain campaigns and common
   obfuscation, not every possible attack, so it supplements human review rather
