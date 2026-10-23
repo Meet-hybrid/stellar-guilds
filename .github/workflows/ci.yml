@@ -22,8 +22,10 @@ jobs:
       - uses: actions/checkout@v7
       - name: Block auto-run configs, binary payloads and npm lifecycle hooks
         run: bash scripts/check-repo-hygiene.sh
-      - name: ForgeGuard scanner regression tests
-        run: bash scripts/forgeguard/test-scan.sh
+      - name: GuildGuard scanner regression tests
+        run: bash scripts/guildguard/test-scan.sh
+      - name: GuildReview regression tests
+        run: bash scripts/guildreview/test-review.sh
 
   contract:
     name: Build and test

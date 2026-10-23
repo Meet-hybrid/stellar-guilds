@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
-# ForgeGuard — scan-then-merge bot for approved pull requests.
+# GuildGuard — scan-then-merge bot for approved pull requests.
 #
-# For each open pull request, ForgeGuard scans the PR's changes for malware
+# For each open pull request, GuildGuard scans the PR's changes for malware
 # patterns (scan-pr.sh), publishes the result as a commit status, and merges
 # the PR only when ALL of the following hold:
 #
@@ -13,63 +13,63 @@
 #   - the PR is not a draft, targets an allowed branch and has no hold label;
 #   - GitHub reports the PR as mergeable.
 #
-# ForgeGuard never approves, never bypasses branch protection, and never
+# GuildGuard never approves, never bypasses branch protection, and never
 # checks out or executes pull request code: PR heads are fetched as git
 # objects and only read. The merge is pinned to the scanned head SHA, so a
 # push that lands after the scan makes the merge fail instead of slipping in.
 #
-# Normally invoked by .github/workflows/forgeguard.yml. See docs/FORGEGUARD.md.
+# Normally invoked by .github/workflows/guildguard.yml. See docs/GUILDGUARD.md.
 #
 # Environment:
 #   GH_TOKEN                    required  token with contents/pull-requests/statuses: write
-#   FORGEGUARD_REPO             required  owner/repo
-#   FORGEGUARD_PR               optional  only process this PR number
-#   FORGEGUARD_BRANCHES         optional  space-separated base branches (default: main)
-#   FORGEGUARD_MERGE_METHOD     optional  squash, rebase or merge (default: squash)
-#   FORGEGUARD_REQUIRED_CHECKS  optional  comma-separated checks that must exist and pass
+#   GUILDGUARD_REPO             required  owner/repo
+#   GUILDGUARD_PR               optional  only process this PR number
+#   GUILDGUARD_BRANCHES         optional  space-separated base branches (default: main)
+#   GUILDGUARD_MERGE_METHOD     optional  squash, rebase or merge (default: squash)
+#   GUILDGUARD_REQUIRED_CHECKS  optional  comma-separated checks that must exist and pass
 #                                         (default: Repo hygiene,Build and test,Coverage gate,Security Audit)
-#   FORGEGUARD_IGNORED_CHECKS   optional  regex of check names to ignore (default: ^Vercel)
-#   FORGEGUARD_HOLD_LABELS      optional  comma-separated labels that block merging
-#                                         (default: do-not-merge,forgeguard:hold)
-#   FORGEGUARD_DRY_RUN          optional  set to 1 to report without posting or merging
+#   GUILDGUARD_IGNORED_CHECKS   optional  regex of check names to ignore (default: ^Vercel)
+#   GUILDGUARD_HOLD_LABELS      optional  comma-separated labels that block merging
+#                                         (default: do-not-merge,guildguard:hold)
+#   GUILDGUARD_DRY_RUN          optional  set to 1 to report without posting or merging
 #
 # Exit codes: 0 = all PRs handled (merged or deliberately skipped),
-# 1 = ForgeGuard could not run (tooling/API problem).
+# 1 = GuildGuard could not run (tooling/API problem).
 
 set -euo pipefail
 
-MARKER='<!-- forgeguard:scan -->'
-STATUS_CONTEXT='ForgeGuard / malware-scan'
+MARKER='<!-- guildguard:scan -->'
+STATUS_CONTEXT='GuildGuard / malware-scan'
 
-log() { printf 'forgeguard: %s\n' "$*"; }
-warn() { printf '::warning::forgeguard: %s\n' "$*" >&2; }
+log() { printf 'guildguard: %s\n' "$*"; }
+warn() { printf '::warning::guildguard: %s\n' "$*" >&2; }
 fail() {
-  printf '::error::forgeguard: %s\n' "$*" >&2
+  printf '::error::guildguard: %s\n' "$*" >&2
   exit 1
 }
 
 : "${GH_TOKEN:?GH_TOKEN must be set}"
-: "${FORGEGUARD_REPO:?FORGEGUARD_REPO must be set}"
+: "${GUILDGUARD_REPO:?GUILDGUARD_REPO must be set}"
 
-FORGEGUARD_PR="${FORGEGUARD_PR:-}"
-FORGEGUARD_BRANCHES="${FORGEGUARD_BRANCHES:-main}"
-FORGEGUARD_MERGE_METHOD="${FORGEGUARD_MERGE_METHOD:-squash}"
-FORGEGUARD_REQUIRED_CHECKS="${FORGEGUARD_REQUIRED_CHECKS:-Repo hygiene,Build and test,Coverage gate,Security Audit}"
-FORGEGUARD_IGNORED_CHECKS="${FORGEGUARD_IGNORED_CHECKS:-^Vercel}"
-FORGEGUARD_HOLD_LABELS="${FORGEGUARD_HOLD_LABELS:-do-not-merge,forgeguard:hold}"
-FORGEGUARD_DRY_RUN="${FORGEGUARD_DRY_RUN:-0}"
+GUILDGUARD_PR="${GUILDGUARD_PR:-}"
+GUILDGUARD_BRANCHES="${GUILDGUARD_BRANCHES:-main}"
+GUILDGUARD_MERGE_METHOD="${GUILDGUARD_MERGE_METHOD:-squash}"
+GUILDGUARD_REQUIRED_CHECKS="${GUILDGUARD_REQUIRED_CHECKS:-Repo hygiene,Build and test,Coverage gate,Security Audit}"
+GUILDGUARD_IGNORED_CHECKS="${GUILDGUARD_IGNORED_CHECKS:-^Vercel}"
+GUILDGUARD_HOLD_LABELS="${GUILDGUARD_HOLD_LABELS:-do-not-merge,guildguard:hold}"
+GUILDGUARD_DRY_RUN="${GUILDGUARD_DRY_RUN:-0}"
 
 # Values below reach API paths or git refspecs, so constrain them first.
-[[ "$FORGEGUARD_REPO" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] \
-  || fail "FORGEGUARD_REPO must look like owner/repo, got: ${FORGEGUARD_REPO}"
-[[ -z "$FORGEGUARD_PR" || "$FORGEGUARD_PR" =~ ^[0-9]+$ ]] \
-  || fail "FORGEGUARD_PR must be a pull request number, got: ${FORGEGUARD_PR}"
-[[ "$FORGEGUARD_MERGE_METHOD" =~ ^(squash|rebase|merge)$ ]] \
-  || fail "FORGEGUARD_MERGE_METHOD must be squash, rebase or merge"
+[[ "$GUILDGUARD_REPO" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] \
+  || fail "GUILDGUARD_REPO must look like owner/repo, got: ${GUILDGUARD_REPO}"
+[[ -z "$GUILDGUARD_PR" || "$GUILDGUARD_PR" =~ ^[0-9]+$ ]] \
+  || fail "GUILDGUARD_PR must be a pull request number, got: ${GUILDGUARD_PR}"
+[[ "$GUILDGUARD_MERGE_METHOD" =~ ^(squash|rebase|merge)$ ]] \
+  || fail "GUILDGUARD_MERGE_METHOD must be squash, rebase or merge"
 
-API="repos/${FORGEGUARD_REPO}"
+API="repos/${GUILDGUARD_REPO}"
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-SCANNER="${ROOT}/scripts/forgeguard/scan-pr.sh"
+SCANNER="${ROOT}/scripts/guildguard/scan-pr.sh"
 
 for tool in gh jq git; do
   command -v "$tool" >/dev/null 2>&1 || fail "$tool is required but was not found on PATH"
@@ -81,7 +81,7 @@ note() {
   summary+=("| #$1 | $2 |")
 }
 
-dry() { [[ "$FORGEGUARD_DRY_RUN" == 1 ]]; }
+dry() { [[ "$GUILDGUARD_DRY_RUN" == 1 ]]; }
 
 # Strip characters that could break out of a markdown code span or table.
 md_safe() { tr -d '`|\r\n<>' <<<"$1"; }
@@ -119,23 +119,23 @@ scan_comment() { # SHA RC FINDINGS
   local sha=$1 rc=$2 findings=$3 level loc reason
   printf '%s\n' "$MARKER"
   if [[ "$rc" == 0 ]]; then
-    printf '### ForgeGuard scan: clean\n\nNo malware patterns found at `%s`.\n' "${sha:0:12}"
+    printf '### GuildGuard scan: clean\n\nNo malware patterns found at `%s`.\n' "${sha:0:12}"
     return
   fi
   if [[ "$rc" == 2 ]]; then
-    printf '### ForgeGuard scan: blocked\n\n'
+    printf '### GuildGuard scan: blocked\n\n'
     printf 'This PR contains patterns used by supply-chain malware and must not be merged.\n'
     printf '**Do not open this branch in an editor or run `npm install` on it.**\n\n'
   else
-    printf '### ForgeGuard scan: needs maintainer review\n\n'
-    printf 'This PR touches sensitive code, so ForgeGuard will not merge it automatically.\n'
+    printf '### GuildGuard scan: needs maintainer review\n\n'
+    printf 'This PR touches sensitive code, so GuildGuard will not merge it automatically.\n'
     printf 'A maintainer can merge it by hand after checking the items below.\n\n'
   fi
   printf '| Level | Location | Reason |\n|---|---|---|\n'
   while IFS=$'\t' read -r level loc reason; do
     [[ -n "$level" ]] && printf '| %s | `%s` | %s |\n' "$level" "$(md_safe "$loc")" "$(md_safe "$reason")"
   done <<<"$findings"
-  printf '\nScanned head `%s`. See docs/FORGEGUARD.md.\n' "${sha:0:12}"
+  printf '\nScanned head `%s`. See docs/GUILDGUARD.md.\n' "${sha:0:12}"
 }
 
 # ---------------------------------------------------------------------------
@@ -168,7 +168,7 @@ check_ci() { # SHA
       --jq '.check_runs[] | [.name, .status, (.conclusion // "")] | @tsv'
     gh api "${API}/commits/${sha}/status" \
       --jq '.statuses[] | [.context, (if .state == "pending" then "in_progress" else "completed" end), .state] | @tsv'
-  } | awk -F'\t' -v own="$STATUS_CONTEXT" -v ignore="$FORGEGUARD_IGNORED_CHECKS" \
+  } | awk -F'\t' -v own="$STATUS_CONTEXT" -v ignore="$GUILDGUARD_IGNORED_CHECKS" \
       '$1 != own && $1 !~ ignore') || { echo "could not read checks"; return 1; }
 
   if name=$(awk -F'\t' '$2 != "completed" { print $1; exit }' <<<"$checks") && [[ -n "$name" ]]; then
@@ -179,7 +179,7 @@ check_ci() { # SHA
     echo "check '${name}' did not pass"
     return 1
   fi
-  IFS=',' read -ra required <<<"$FORGEGUARD_REQUIRED_CHECKS"
+  IFS=',' read -ra required <<<"$GUILDGUARD_REQUIRED_CHECKS"
   for name in "${required[@]}"; do
     awk -F'\t' -v n="$name" '$1 == n { found = 1 } END { exit !found }' <<<"$checks" \
       || missing+="${missing:+, }${name}"
@@ -201,20 +201,20 @@ process_pr() {
   draft=$(jq -r .draft <<<"$json")
   labels=$(jq -r '[.labels[].name] | join(",")' <<<"$json")
 
-  [[ " ${FORGEGUARD_BRANCHES} " == *" ${base} "* ]] \
+  [[ " ${GUILDGUARD_BRANCHES} " == *" ${base} "* ]] \
     || { note "$pr" "skipped: base '${base}' is not managed"; return 0; }
   [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { warn "#${pr}: unexpected head sha"; return 0; }
 
   # Fetch the PR head and base as objects only — nothing is checked out.
   git fetch --quiet --no-tags origin \
-    "+refs/pull/${pr}/head:refs/forgeguard/pr-${pr}" \
-    "+refs/heads/${base}:refs/forgeguard/base-${pr}" \
+    "+refs/pull/${pr}/head:refs/guildguard/pr-${pr}" \
+    "+refs/heads/${base}:refs/guildguard/base-${pr}" \
     || { warn "#${pr}: fetch failed"; return 0; }
-  [[ "$(git rev-parse "refs/forgeguard/pr-${pr}")" == "$sha" ]] \
+  [[ "$(git rev-parse "refs/guildguard/pr-${pr}")" == "$sha" ]] \
     || { note "$pr" "skipped: head moved during the run"; return 0; }
 
   rc=0
-  findings=$(bash "$SCANNER" "refs/forgeguard/base-${pr}" "refs/forgeguard/pr-${pr}") || rc=$?
+  findings=$(bash "$SCANNER" "refs/guildguard/base-${pr}" "refs/guildguard/pr-${pr}") || rc=$?
   case "$rc" in
     0) wanted=$'success\tNo malware patterns found' ;;
     1) wanted="success"$'\t'"$(grep -c . <<<"$findings") item(s) need maintainer review; not auto-merged" ;;
@@ -238,7 +238,7 @@ process_pr() {
   esac
 
   [[ "$draft" == false ]] || { note "$pr" "waiting: draft"; return 0; }
-  IFS=',' read -ra hold <<<"$FORGEGUARD_HOLD_LABELS"
+  IFS=',' read -ra hold <<<"$GUILDGUARD_HOLD_LABELS"
   for label in "${hold[@]}"; do
     [[ ",${labels}," == *",${label},"* ]] && { note "$pr" "held by label '${label}'"; return 0; }
   done
@@ -257,11 +257,11 @@ process_pr() {
   esac
 
   if dry; then
-    note "$pr" "[dry-run] would ${FORGEGUARD_MERGE_METHOD}-merge ${sha:0:12}"
+    note "$pr" "[dry-run] would ${GUILDGUARD_MERGE_METHOD}-merge ${sha:0:12}"
     return 0
   fi
   if gh api -X PUT "${API}/pulls/${pr}/merge" -f sha="$sha" \
-    -f merge_method="$FORGEGUARD_MERGE_METHOD" >/dev/null; then
+    -f merge_method="$GUILDGUARD_MERGE_METHOD" >/dev/null; then
     note "$pr" "MERGED ${sha:0:12} into ${base}"
   else
     note "$pr" "merge refused by GitHub (head changed or protection not met)"
@@ -271,8 +271,8 @@ process_pr() {
 # ---------------------------------------------------------------------------
 # Main.
 # ---------------------------------------------------------------------------
-if [[ -n "$FORGEGUARD_PR" ]]; then
-  prs=("$FORGEGUARD_PR")
+if [[ -n "$GUILDGUARD_PR" ]]; then
+  prs=("$GUILDGUARD_PR")
 else
   mapfile -t prs < <(gh api "${API}/pulls?state=open&per_page=100" --paginate --jq '.[].number') \
     || fail "cannot list open pull requests"
@@ -284,7 +284,7 @@ done
 
 if [[ -n "${GITHUB_STEP_SUMMARY:-}" && ${#summary[@]} -gt 0 ]]; then
   {
-    printf '### ForgeGuard\n\n| PR | Result |\n|---|---|\n'
+    printf '### GuildGuard\n\n| PR | Result |\n|---|---|\n'
     printf '%s\n' "${summary[@]}"
   } >>"$GITHUB_STEP_SUMMARY"
 fi
