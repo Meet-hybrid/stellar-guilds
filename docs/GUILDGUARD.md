@@ -1,8 +1,7 @@
 # GuildGuard
 
-**GuildGuard is a repository automation tool, ported from
-[Soroban Forge](https://github.com/Meet-hybrid/soroban-forge). It is NOT an
-official Drips or Stellar bot.** It runs entirely on GitHub Actions with the
+**GuildGuard is a repository automation tool. It is NOT an official Drips or
+Stellar bot.** It runs entirely on GitHub Actions with the
 repository's `GITHUB_TOKEN`; there is no separate account or GitHub App.
 
 GuildGuard scans every open pull request for supply-chain malware patterns and
