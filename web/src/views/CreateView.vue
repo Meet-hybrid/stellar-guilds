@@ -120,7 +120,7 @@ async function submit() {
       <label>
         Treasury address
         <input v-model="treasury" placeholder="G… or C…" spellcheck="false" />
-        <span class="hint">Receives the 0.25% fee on each payout. Must be different from your account.</span>
+        <span class="hint">Receives the 0.25% fee on each payout. Must be different from your account, and a G… account needs a trustline for the token before fees can be withdrawn.</span>
       </label>
 
       <details>

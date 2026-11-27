@@ -6,6 +6,7 @@ import {
   Contract,
   Operation,
   TransactionBuilder,
+  humanizeEvents,
   nativeToScVal,
   rpc,
   scValToNative,
@@ -28,18 +29,40 @@ export class ContractError extends Error {
   }
 }
 
+/**
+ * The simulation error string only carries the code (`Error(Contract, #13)`);
+ * the reason, such as a token's "trustline entry is missing", is in the
+ * diagnostic error events, so they are appended for `explain` to match.
+ */
+function simulationText(sim: rpc.Api.SimulateTransactionErrorResponse): string {
+  const notes: string[] = []
+  try {
+    for (const e of humanizeEvents(sim.events ?? [])) {
+      if (e.topics?.[0] === 'error') notes.push(JSON.stringify(e.data, (_, v) => (typeof v === 'bigint' ? String(v) : v)))
+    }
+  } catch {
+    // Diagnostics are best-effort; the code alone is still explained.
+  }
+  return [sim.error, ...notes].join('\n')
+}
+
 /** Turn a simulation or submission failure into something a person can read. */
 function explain(raw: string): ContractError {
+  // Token (SAC) failures surface as Error(Contract, #n) too, and their codes
+  // overlap ours (#13 is both TrustlineMissing and ArithmeticOverflow), so the
+  // diagnostic text is checked before the numeric code.
+  if (/trustline entry is missing|TrustlineMissing/i.test(raw)) {
+    return new ContractError(
+      'The receiving account has no trustline for this token. Add one in the wallet (and fund it from the faucet if it is yours), then try again.',
+    )
+  }
+  if (/balance is not sufficient|insufficient/i.test(raw)) {
+    return new ContractError('Not enough USDC in your account for this action.')
+  }
   const match = raw.match(/Error\(Contract, #(\d+)\)/)
   if (match) {
     const code = Number(match[1])
     return new ContractError(CONTRACT_ERRORS[code] ?? `Contract error #${code}`, code)
-  }
-  if (/trustline entry is missing|TrustlineMissing/i.test(raw)) {
-    return new ContractError('Your account has no USDC trustline. Add one in your wallet, then fund it from the faucet.')
-  }
-  if (/balance is not sufficient|insufficient/i.test(raw)) {
-    return new ContractError('Not enough USDC in your account for this action.')
   }
   const firstLine = raw.split('\n').find((l) => l.trim()) ?? raw
   return new ContractError(firstLine.slice(0, 240))
@@ -52,7 +75,7 @@ export async function read<T>(contractId: string, method: string, ...args: xdr.S
     .setTimeout(30)
     .build()
   const sim = await server.simulateTransaction(tx)
-  if (rpc.Api.isSimulationError(sim)) throw explain(sim.error)
+  if (rpc.Api.isSimulationError(sim)) throw explain(simulationText(sim))
   const retval = sim.result?.retval
   return (retval ? scValToNative(retval) : undefined) as T
 }
@@ -73,7 +96,7 @@ export async function send(source: string, operation: xdr.Operation): Promise<Se
     .build()
 
   const sim = await server.simulateTransaction(built)
-  if (rpc.Api.isSimulationError(sim)) throw explain(sim.error)
+  if (rpc.Api.isSimulationError(sim)) throw explain(simulationText(sim))
   const prepared = rpc.assembleTransaction(built, sim).build()
 
   const signed = await signXdr(prepared.toXDR(), source)
