@@ -1,0 +1,27 @@
+{
+  "scenario": "walkaway",
+  "network": "testnet",
+  "status": "passed",
+  "started_at": "2026-11-27T00-24-16Z",
+  "contract_id": "CBLMFTAKS64G2CTQRJ2D2GPH6OKO7KUMFDXTQWCTPWCKKLHNJY5Z4DOJ",
+  "token": {"code": "USDC", "issuer": "GCJ2EZU2DDJC5ZMS4WBCH6YOGBBZUVAKKWIV2U32NUBRG2ICBMX54SN5", "sac": "CBQYJVZPGMRGJGVV7T6VLD74QODCGMGKEISG34KQO6WMTFRY3QEZGHHD", "note": "test asset issued by this script; no value"},
+  "wasm_sha256": "9b15e61351a4269a9f6a43940c7da6885385dd18f52738f43bd05ba5dde01777",
+  "steps": [
+    {"step":"funded fresh testnet accounts with Friendbot","detail":{"admin":"GD6HHB5KBDC6QV5WJ4OCYWHEZDMWCH3JBKAYNHKJGEXTJYWANIGTW7NU","treasury":"GDZMTUCD6QRDPPYAFHF5IGTNVEFJMGIW6PUTVRC3SCJSW4TFK5CR74H4","issuer":"GCJ2EZU2DDJC5ZMS4WBCH6YOGBBZUVAKKWIV2U32NUBRG2ICBMX54SN5"}},
+    {"step":"issued test USDC: each member holds exactly 400 USDC"},
+    {"step":"wrapped the test asset as a Stellar Asset Contract","tx":"581a4f8c5c64e826bf43412859492b76a2b2708f06ca55157a9b5f709dfe2da3","detail":{"sac":"CBQYJVZPGMRGJGVV7T6VLD74QODCGMGKEISG34KQO6WMTFRY3QEZGHHD"}},
+    {"step":"deployed guild-vault","tx":"8847b7062e612effa409281c8d20a30586628712227df2acffe0097bf179d9bd","detail":{"contract_id":"CBLMFTAKS64G2CTQRJ2D2GPH6OKO7KUMFDXTQWCTPWCKKLHNJY5Z4DOJ","wasm_sha256":"9b15e61351a4269a9f6a43940c7da6885385dd18f52738f43bd05ba5dde01777"}},
+    {"step":"initialized: 3 seats, 100 USDC per round, 120-ledger rounds, 24-ledger grace, collateral 10000 bps","tx":"3c5e983c0b8ccf15457a812d2aaf0f8c38b2bea9d84a3e750e21012021d75aac"},
+    {"step":"w1 joined and posted a 100 USDC bond (payout position follows join order)","tx":"b06c6351b169d76051880dcfa91becf639b967c9a84500d2eb7b44f1f14c4573"},
+    {"step":"w2 joined and posted a 100 USDC bond (payout position follows join order)","tx":"d3464bd0f4b418f36f044c2945ffe16c5c7e5ad4be370bc8b23e6dda371e8264"},
+    {"step":"w3 joined and posted a 100 USDC bond (payout position follows join order)","tx":"b58045b83d9126b28a455187d4478b07498cadcd76736b9cc7c3067b3f5d9098"},
+    {"step":"round 0: all three members deposited 100 USDC","tx":"09e28fcf099320ee3726e1f0785e115e66bbb8d079f8d3b3bad2f776a0f9daa1"},
+    {"step":"round 0: w1 received 199.25 USDC; 100 USDC held in escrow against w1's remaining dues","tx":"4d80188589214b173a87d0b459624d1d218e71ff46d86d5f798bb5eba39d90fd","detail":{"recipient":"GCURMQYFLAO3PEPIJDVEOLAYB3BBNPZFEDE6PDVSRITZ56XCA3PBXNUY","received_stroops":"1992500000"}},
+    {"step":"round 1: w2 and w3 deposited; w1 walked away","tx":"8b5f3b95f0d89b9eb47366128224d3f1cbe9d5e7ef7f8fd401f29427d193904b"},
+    {"step":"round 1: w2 received a full 299.25 USDC pot; w1's missed 100 USDC was paid from w1's escrow","tx":"128ce46714008db344e998a842f2e887fb8e1cf148ea3984f49c552c37d725ed","detail":{"recipient":"GCIIK3QDKT4ACUP667SJQV36EYSCE6B5FXHGWB7PSJ7VB3RI64YA5GEX","received_stroops":"2992500000"}},
+    {"step":"round 2: w2 and w3 deposited; w1 walked away","tx":"7d1d383b20b46743b0e4e8dc43de7d670c8e0c65456905370abd7e79389c5367"},
+    {"step":"round 2: w3 received a full 299.25 USDC pot; w1's missed 100 USDC was paid from w1's bond","tx":"15364d5648a0119765765b0de630864160b5e77af3023780d83081bec36b1abb","detail":{"recipient":"GCNKCFVKDRJD7VQWCNZWB5YZXIQT5UCNLHG3KYXTW5ERZ4O7W3Q5BU2D","received_stroops":"2992500000"}},
+    {"step":"w1: escrow 0, bond 0, debt 0, missed_rounds 2. Nobody was short-paid."},
+    {"step":"w1 tried to withdraw collateral after walking away and was refused with NothingToWithdraw (#21)"}
+  ]
+}

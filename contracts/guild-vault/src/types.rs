@@ -25,6 +25,9 @@ pub const REPUTATION_PER_DEPOSIT: u32 = 10;
 /// Reputation ceiling.
 pub const REPUTATION_MAX: u32 = 100;
 
+/// Upper bound for `collateral_bps`: 100% of a recipient's remaining dues.
+pub const MAX_COLLATERAL_BPS: u32 = 10_000;
+
 /// Persistent entries are bumped once they are this close to archival.
 pub const STORAGE_THRESHOLD: u32 = 1_000;
 /// Persistent entries are bumped to live this many ledgers (~30 days).
@@ -46,6 +49,26 @@ pub enum DataKey {
     VaultBalance,
     /// USDC owed to the treasury, held in the vault until withdrawn.
     TreasuryBalance,
+    /// USDC held as member collateral: every bond plus every escrow.
+    CollateralBalance,
+}
+
+/// Parameters chosen by whoever creates the guild.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GuildParams {
+    /// Contribution per member per round, in stroops. Also the joining bond.
+    pub contribution_amount: i128,
+    /// Round length in ledgers.
+    pub round_duration_ledgers: u32,
+    /// Extra ledgers granted after the deadline before a round settles.
+    pub grace_period_ledgers: u32,
+    /// Number of members, and therefore the number of payouts in a full cycle.
+    pub total_rounds: u32,
+    /// Share of a recipient's remaining dues held back from their payout, in
+    /// basis points. `10_000` makes every default fully covered; `0` relies on
+    /// the bond alone. See the README for the trade-off.
+    pub collateral_bps: u32,
 }
 
 /// Immutable guild configuration.
@@ -64,6 +87,10 @@ pub struct GuildConfig {
     pub grace_period_ledgers: u32,
     /// Number of members, and therefore the number of payouts in a full cycle.
     pub total_rounds: u32,
+    /// Share of remaining dues held back from each payout, in basis points.
+    pub collateral_bps: u32,
+    /// Bond every member posts on joining. Equal to one contribution.
+    pub bond_amount: i128,
 }
 
 /// Per-member state.
@@ -77,6 +104,19 @@ pub struct MemberState {
     pub reputation_score: u32,
     /// Sticky flag: this member missed a round.
     pub is_defaulted: bool,
+    /// Rounds this member failed to contribute to.
+    pub missed_rounds: u32,
+    /// Whether this member has already received the pot.
+    pub received: bool,
+    /// Bond still held for this member.
+    pub bond: i128,
+    /// Payout held back for this member's remaining dues.
+    pub escrow: i128,
+    /// Missed contributions their collateral could not cover. Repaid from
+    /// their own payout, or voluntarily with `repay_debt`.
+    pub debt: i128,
+    /// Amount this member was short-paid as a recipient and is still owed.
+    pub shortfall: i128,
 }
 
 /// Cursor for the round in progress.
@@ -132,4 +172,12 @@ pub enum Error {
     GuildNotFull = 17,
     /// The member has already contributed, so cannot be defaulted.
     MemberHasPaid = 18,
+    /// The guild has already started, so membership is frozen.
+    AlreadyStarted = 19,
+    /// The cycle is still running.
+    NotCompleted = 20,
+    /// The member has no collateral left to withdraw.
+    NothingToWithdraw = 21,
+    /// The member owes nothing.
+    NoDebt = 22,
 }

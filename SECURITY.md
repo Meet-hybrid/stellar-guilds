@@ -23,7 +23,7 @@ Only `main` is supported. The contract is immutable once deployed — a fix mean
 |---|---|---|
 | **Admin** (set at `initialize`) | Nothing after initialization | Move principal, choose a payout recipient, redirect fees, upgrade the contract, change the schedule |
 | **Treasury** | Call `withdraw_treasury_fees` to receive accrued fees at its own address | Withdraw more than `TreasuryBalance`, or send funds anywhere but its own address |
-| **Any member** | Join, contribute once per round, call `distribute_payout` and `handle_default` | Contribute twice in a round, deposit after the deadline, move another member's funds |
+| **Any member** | Join (posting a bond), leave before the start, contribute once per round, repay their own debt, withdraw their own collateral after the end, call `distribute_payout` and `handle_default` | Contribute twice in a round, deposit after the deadline, move another member's funds or collateral, withdraw collateral before the cycle ends |
 | **Anyone at all** | Settle a round, flag a defaulter | Choose a recipient, change amounts, mint, or upgrade |
 
 `initialize` rejects `admin == treasury` so fee collection and administration cannot share one key by accident.
@@ -34,15 +34,19 @@ Only `main` is supported. The contract is immutable once deployed — a fix mean
 - Paying a payout to an address other than `MemberList[round]`
 - Extracting more fees than the 25 bps accrued from real contributions
 - Preventing a round from settling when it should settle
-- Corrupting `VaultBalance` / `TreasuryBalance` so they no longer match the token balance
+- Corrupting `VaultBalance` / `TreasuryBalance` / `CollateralBalance` so they no longer match the token balance
+- Using one member's bond or escrow to pay anything other than that member's own missed contributions or debt
+- Making `Σ debt` differ from `Σ shortfall`, or settling a debt to anyone other than a short-paid member
+- Escaping a default without the bond, escrow or own-payout deduction the README describes
+- Reordering seats other than by the automatic demotion of a member who missed before receiving
 - Bypassing the once-per-round contribution limit for a member
 
 ## What is out of scope
 
 These are documented design decisions, not vulnerabilities:
 
-- **The recipient of a short round absorbs the shortfall.** Pro-rata settlement is deliberate; the alternative is a round that never settles.
-- **A defaulting member still receives their rotation.** Reputation is informational and does not gate anything.
+- **Below `collateral_bps = 10000`, a member who walks away after receiving can leave others short.** The uncovered part is recorded as debt and a claim, but nothing forces repayment. This is the documented trade-off the guild creator chooses.
+- **A defaulting member who has not received still gets their rotation**, at the back of the queue and minus their recorded debt. Reputation is informational and does not gate anything.
 - **Any member, or a stranger, can trigger settlement and default flagging.** This is intentional: a round should never depend on one person's willingness to act.
 - **USDC-only assumptions** (no transfer fees, no rebasing). The contract is not a general-purpose token vault.
 - **The `MathOverflow` guard is unreachable** through a real token: the token contract rejects an overflowing transfer first. It is retained as defence in depth.

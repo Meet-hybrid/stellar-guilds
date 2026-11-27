@@ -1,0 +1,23 @@
+{
+  "scenario": "default",
+  "network": "testnet",
+  "status": "passed",
+  "started_at": "2026-11-27T00-24-16Z",
+  "contract_id": "CBXQ2N4WOW7JN35656YMXJTIJRYGBJOVBOYM7C42VXWB646C52VOO62Y",
+  "token": {"code": "USDC", "issuer": "GBX2RLQYTVAKADVJTHODCG2HTLG5ORLOBOM6S7B4NJTWLBDPL5TGQOYR", "sac": "CDF3JGIFDGS3RYQMD4PUBPOGSPNGZVDYPSR3O4ZJ75BQDLABK4EKWFGP", "note": "test asset issued by this script; no value"},
+  "wasm_sha256": "9b15e61351a4269a9f6a43940c7da6885385dd18f52738f43bd05ba5dde01777",
+  "steps": [
+    {"step":"funded fresh testnet accounts with Friendbot","detail":{"admin":"GAYXPIRJPOW2A355X5Y7FS32ZSUV4EIFAGFDVUS6OEQ7I545TMU4MCOD","treasury":"GBBHME4AEQAK2ZJBFNOOZ3F3M6Y7WK3ZCRWMTAO6ZGV6IPBD7HWQNRBI","issuer":"GBX2RLQYTVAKADVJTHODCG2HTLG5ORLOBOM6S7B4NJTWLBDPL5TGQOYR"}},
+    {"step":"issued test USDC: each member holds exactly 300 USDC"},
+    {"step":"wrapped the test asset as a Stellar Asset Contract","tx":"49633b659eada3217e8d3b1ec068f8367d47249d4317c0bad5384b2680637adf","detail":{"sac":"CDF3JGIFDGS3RYQMD4PUBPOGSPNGZVDYPSR3O4ZJ75BQDLABK4EKWFGP"}},
+    {"step":"deployed guild-vault","tx":"1ce7f43bbc008f6cae7f2f9e2417698bfeeeff857bdac3e53df0cb5754b931d1","detail":{"contract_id":"CBXQ2N4WOW7JN35656YMXJTIJRYGBJOVBOYM7C42VXWB646C52VOO62Y","wasm_sha256":"9b15e61351a4269a9f6a43940c7da6885385dd18f52738f43bd05ba5dde01777"}},
+    {"step":"initialized: 2 seats, 100 USDC per round, 120-ledger rounds, 24-ledger grace, collateral 10000 bps","tx":"e637e1308d3283889c39a84020ffb9cdbcdbc23109e05f0a5d9429487866c4c3"},
+    {"step":"d1 joined and posted a 100 USDC bond (payout position follows join order)","tx":"502ae0051817213a520e9b163a0d29c1ca5e39b01770254d12410a437ddc70fc"},
+    {"step":"d2 joined and posted a 100 USDC bond (payout position follows join order)","tx":"f7de4773c1c0efe719db7086f85fc4f5901ada9a4155a76bfa46e31433258129"},
+    {"step":"round 0: d1 deposited 100 USDC; d2 did not","tx":"8c4ac6b5f3cb82ce7700bf36eb478357e1a1e4b8dd4f57321ce0fbb7a81bf9cf"},
+    {"step":"after the deadline but inside grace, payout was rejected with NotAllPaid (#8)"},
+    {"step":"inside grace, handle_default was rejected with GraceNotExpired (#9)"},
+    {"step":"after grace the round settled with a full pot: d2's bond covered the missed 100 USDC and d1 received exactly 199.5 USDC","tx":"024202896c6910002c28e7afae6cfb41b7c29c02a869b3c1cd0a9309cda1fa1b","detail":{"recipient":"GA6KEBXTYM3BUGMXLSIUMA64DE3GSU5ZOPYXSAVBCDM7HDV7KTFACDZD","received_stroops":"1995000000"}},
+    {"step":"d2: bond 0, missed_rounds 1, reputation 0, no debt"}
+  ]
+}

@@ -104,3 +104,21 @@ jobs:
       # set to the real measured floor rather than a number chosen to look good.
       - name: Coverage
         run: cargo llvm-cov --package guild-vault --lib --fail-under-lines 99 --show-missing-lines
+
+  web:
+    name: Web app
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      # --ignore-scripts: no dependency lifecycle hook runs in CI.
+      - run: npm ci --ignore-scripts
+      - name: Type-check and build
+        run: npm run build
