@@ -3,7 +3,8 @@
 # transaction hash as evidence.
 #
 #   bash scripts/testnet-demo.sh full-cycle   # 4 members, 4 rounds, everyone pays (~45 min)
-#   bash scripts/testnet-demo.sh default      # 2 members, one misses a round (~15 min)
+#   bash scripts/testnet-demo.sh default      # 2 members, one misses; the bond covers it (~15 min)
+#   bash scripts/testnet-demo.sh walkaway     # 3 members, the first recipient stops paying (~40 min)
 #
 # Requirements: stellar-cli 28.x, curl, and the wasm32v1-none Rust target.
 # Accounts are funded by Friendbot; their keys are kept in the OS keyring
@@ -19,8 +20,8 @@ set -Eeuo pipefail
 
 SCENARIO="${1:-}"
 case "$SCENARIO" in
-  full-cycle | default) ;;
-  *) echo "usage: $0 full-cycle|default" >&2; exit 2 ;;
+  full-cycle | default | walkaway) ;;
+  *) echo "usage: $0 full-cycle|default|walkaway" >&2; exit 2 ;;
 esac
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -166,7 +167,11 @@ round_field() { view get_round | grep -oE "\"$1\":[0-9]+" | cut -d: -f2; }
 # ---------------------------------------------------------------------------
 # Accounts, test USDC and deployment
 # ---------------------------------------------------------------------------
-if [[ "$SCENARIO" == full-cycle ]]; then MEMBERS=(m1 m2 m3 m4); else MEMBERS=(d1 d2); fi
+case "$SCENARIO" in
+  full-cycle) MEMBERS=(m1 m2 m3 m4); COLLATERAL_BPS=0 ;;
+  default) MEMBERS=(d1 d2); COLLATERAL_BPS=10000 ;;
+  walkaway) MEMBERS=(w1 w2 w3); COLLATERAL_BPS=10000 ;;
+esac
 SEATS=${#MEMBERS[@]}
 
 log "creating and funding testnet accounts"
@@ -179,7 +184,8 @@ record "funded fresh testnet accounts with Friendbot" "" \
   "{\"admin\":\"$ADMIN\",\"treasury\":\"$TREASURY\",\"issuer\":\"$ISSUER\"}"
 
 ASSET="USDC:${ISSUER}"
-FUNDING=$((CONTRIBUTION * SEATS))
+# One contribution per round plus the joining bond.
+FUNDING=$((CONTRIBUTION * (SEATS + 1)))
 for who in treasury "${MEMBERS[@]}"; do
   send "$who" stellar tx new change-trust --line "$ASSET"
 done
@@ -198,15 +204,34 @@ send admin stellar contract deploy --wasm "$WASM"
 CONTRACT_ID="$LAST_OUT"
 record "deployed guild-vault" "$LAST_TX" "{\"contract_id\":\"$CONTRACT_ID\",\"wasm_sha256\":\"$WASM_HASH\"}"
 
-invoke admin initialize --admin "$ADMIN" --treasury "$TREASURY" --usdc_token "$SAC" \
-  --contribution_amount "$CONTRIBUTION" --round_duration_ledgers "$ROUND_LEDGERS" \
-  --grace_period_ledgers "$GRACE_LEDGERS" --total_rounds "$SEATS"
-record "initialized: ${SEATS} seats, 100 USDC per round, ${ROUND_LEDGERS}-ledger rounds, ${GRACE_LEDGERS}-ledger grace" "$LAST_TX"
+PARAMS="{\"contribution_amount\":\"$CONTRIBUTION\",\"round_duration_ledgers\":$ROUND_LEDGERS,\"grace_period_ledgers\":$GRACE_LEDGERS,\"total_rounds\":$SEATS,\"collateral_bps\":$COLLATERAL_BPS}"
+invoke admin initialize --admin "$ADMIN" --treasury "$TREASURY" --usdc_token "$SAC" --params "$PARAMS"
+record "initialized: ${SEATS} seats, 100 USDC per round, ${ROUND_LEDGERS}-ledger rounds, ${GRACE_LEDGERS}-ledger grace, collateral ${COLLATERAL_BPS} bps" "$LAST_TX"
 
 for m in "${MEMBERS[@]}"; do
   invoke "$m" join_guild --member "${ADDR[$m]}"
-  record "$m joined (payout position follows join order)" "$LAST_TX"
+  record "$m joined and posted a 100 USDC bond (payout position follows join order)" "$LAST_TX"
 done
+
+# settle EXPECTED_RECIPIENT EXPECTED_STROOPS LABEL: wait out the round, settle
+# it and check exactly what the recipient received.
+settle() {
+  local who="$1" expected="$2" label="$3" start before received tx
+  start="$(round_field start_ledger)"
+  if [[ "${4:-}" == grace ]]; then
+    wait_for_ledger $((start + ROUND_LEDGERS + GRACE_LEDGERS + 2))
+  else
+    wait_for_ledger $((start + ROUND_LEDGERS))
+  fi
+  before="$(token_balance "${ADDR[$who]}")"
+  invoke admin distribute_payout
+  tx="$LAST_TX"
+  received=$(($(token_balance "${ADDR[$who]}") - before))
+  ((received == expected)) || fail "$label: $who received $received stroops, expected $expected"
+  record "$label" "$tx" "{\"recipient\":\"${ADDR[$who]}\",\"received_stroops\":\"$received\"}"
+}
+
+member_field() { view get_member --who "$1" | grep -oE "\"$2\":\"?-?[0-9a-z]+" | sed -E 's/.*:"?//'; }
 
 # ---------------------------------------------------------------------------
 # Scenarios
@@ -240,7 +265,14 @@ if [[ "$SCENARIO" == full-cycle ]]; then
     bal="$(token_balance "${ADDR[$m]}")"
     ((bal == 3990000000)) || fail "$m ends with $bal stroops, expected 3990000000"
   done
-  record "every member ends with exactly 399 USDC (400 paid in, one 399 payout received)"
+  record "every member holds exactly 399 USDC (500 funded, 100 bond held, 400 paid in, one 399 payout)"
+
+  for m in "${MEMBERS[@]}"; do
+    invoke "$m" withdraw_collateral --member "${ADDR[$m]}"
+    bal="$(token_balance "${ADDR[$m]}")"
+    ((bal == 4990000000)) || fail "$m holds $bal stroops after withdrawing the bond, expected 4990000000"
+  done
+  record "after the cycle every member withdrew their 100 USDC bond and holds exactly 499 USDC" "$LAST_TX"
 
   expect_auth_failure "$TREASURY" admin withdraw_treasury_fees
   record "fee withdrawal sent by the admin was refused: it requires the treasury's signature"
@@ -252,7 +284,7 @@ if [[ "$SCENARIO" == full-cycle ]]; then
   ((tbal == 40000000)) || fail "treasury holds $tbal stroops, expected 40000000"
   ((cbal == 0)) || fail "contract still holds $cbal stroops, expected 0"
   record "treasury withdrew exactly 4 USDC of fees; the contract holds 0" "$tx"
-else
+elif [[ "$SCENARIO" == default ]]; then
   invoke d1 deposit_contribution --member "${ADDR[d1]}"
   record "round 0: d1 deposited 100 USDC; d2 did not" "$LAST_TX"
   start="$(round_field start_ledger)"
@@ -262,20 +294,37 @@ else
   record "after the deadline but inside grace, payout was rejected with NotAllPaid (#8)"
   expect_error 9 admin handle_default --delinquent_member "${ADDR[d2]}"
   record "inside grace, handle_default was rejected with GraceNotExpired (#9)"
-  wait_for_ledger $((deadline + GRACE_LEDGERS + 2))
-  invoke admin handle_default --delinquent_member "${ADDR[d2]}"
-  record "after grace, anyone could mark d2 as defaulted" "$LAST_TX"
-  member="$(view get_member --who "${ADDR[d2]}")"
-  printf '%s' "$member" | grep -q '"is_defaulted":true' || fail "d2 is not marked defaulted: $member"
-  printf '%s' "$member" | grep -q '"reputation_score":0' || fail "d2 reputation is not 0: $member"
-  record "d2 is_defaulted=true, reputation_score=0"
-  before="$(token_balance "${ADDR[d1]}")"
-  invoke admin distribute_payout
-  tx="$LAST_TX"
-  received=$(($(token_balance "${ADDR[d1]}") - before))
-  ((received == 997500000)) || fail "d1 received $received stroops, expected 997500000"
-  record "pro-rata payout: d1 received exactly 99.75 USDC (one contribution minus the 0.25% fee)" "$tx" \
-    "{\"received_stroops\":\"$received\"}"
+  # Before v2 d1 would have received 99.75 USDC here. d2's bond now covers the
+  # missed contribution, so d1 receives the full 200-USDC pot minus the fee.
+  settle d1 1995000000 "after grace the round settled with a full pot: d2's bond covered the missed 100 USDC and d1 received exactly 199.5 USDC" grace
+  [[ "$(member_field "${ADDR[d2]}" bond)" == 0 ]] || fail "d2's bond was not used"
+  [[ "$(member_field "${ADDR[d2]}" missed_rounds)" == 1 ]] || fail "d2 missed_rounds is not 1"
+  [[ "$(member_field "${ADDR[d2]}" reputation_score)" == 0 ]] || fail "d2 reputation is not 0"
+  record "d2: bond 0, missed_rounds 1, reputation 0, no debt"
+else
+  # The case the v1 contract could not handle: the first recipient takes the
+  # pot and never pays again. With collateral_bps = 10000 the later recipients
+  # must still receive full pots.
+  for m in "${MEMBERS[@]}"; do invoke "$m" deposit_contribution --member "${ADDR[$m]}"; done
+  record "round 0: all three members deposited 100 USDC" "$LAST_TX"
+  # Pool 300, fee 0.75. w1 still owes 2 rounds: the bond covers one, 100 USDC is held in escrow.
+  settle w1 1992500000 "round 0: w1 received 199.25 USDC; 100 USDC held in escrow against w1's remaining dues"
+  [[ "$(member_field "${ADDR[w1]}" escrow)" == 1000000000 ]] || fail "w1 escrow is not 100 USDC"
+
+  for round in 1 2; do
+    recipient="w$((round + 1))"
+    for m in w2 w3; do invoke "$m" deposit_contribution --member "${ADDR[$m]}"; done
+    record "round $round: w2 and w3 deposited; w1 walked away" "$LAST_TX"
+    # w2/w3 paid 100 in this round, so the balance check measures the net payout.
+    settle "$recipient" 2992500000 "round $round: $recipient received a full 299.25 USDC pot; w1's missed 100 USDC was paid from w1's $( ((round == 1)) && echo escrow || echo bond)" grace
+  done
+  for f in escrow bond debt; do
+    [[ "$(member_field "${ADDR[w1]}" "$f")" == 0 ]] || fail "w1 $f is not 0"
+  done
+  [[ "$(member_field "${ADDR[w1]}" missed_rounds)" == 2 ]] || fail "w1 missed_rounds is not 2"
+  record "w1: escrow 0, bond 0, debt 0, missed_rounds 2. Nobody was short-paid."
+  expect_error 21 w1 withdraw_collateral --member "${ADDR[w1]}"
+  record "w1 tried to withdraw collateral after walking away and was refused with NothingToWithdraw (#21)"
 fi
 
 write_evidence "passed"

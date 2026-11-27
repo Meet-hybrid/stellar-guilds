@@ -46,7 +46,7 @@ contracts/guild-vault/
 | `make build` | `stellar contract build` |
 | `make size` | fails if the wasm exceeds the 60 KiB budget |
 
-Coverage: `cargo llvm-cov --package guild-vault --lib --show-missing-lines`. Current: 99.72% lines on `lib.rs`.
+Coverage: `cargo llvm-cov --package guild-vault --lib --show-missing-lines`. Current: 99.08% lines on `lib.rs` (the uncovered lines are explained in the README under Honest limitations). The web app: `cd web && npm install && npm run build`.
 
 ## Rules for contract changes
 
